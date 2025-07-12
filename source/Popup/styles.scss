@@ -1,0 +1,204 @@
+@import "../styles/fonts";
+@import "../styles/reset";
+@import "../styles/variables";
+
+body {
+  color: $black;
+  background-color: $greyWhite;
+  font-family: $nunito;
+}
+
+.popup-container {
+  width: 400px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .connection-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.2);
+
+      &.connected {
+        background: rgba(76, 175, 80, 0.2);
+      }
+
+      &.disconnected {
+        background: rgba(244, 67, 54, 0.2);
+      }
+    }
+
+    .tools-btn, .settings-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+}
+
+.tools-panel {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  .panel-section {
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .no-items {
+      font-size: 12px;
+      color: #6c757d;
+      font-style: italic;
+      margin: 0;
+    }
+  }
+
+  .tools-grid, .resources-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tool-card, .resource-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 12px;
+
+    .tool-name, .resource-name {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 4px;
+    }
+
+    .tool-description, .resource-description {
+      color: #6c757d;
+      margin-bottom: 6px;
+    }
+
+    .resource-uri {
+      font-family: monospace;
+      color: #6c757d;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .tool-call-btn, .resource-read-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover:not(:disabled) {
+        background: #0056b3;
+      }
+
+      &:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .connection-controls {
+    margin-top: 12px;
+
+    .connect-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #218838;
+      }
+    }
+  }
+}
+
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .welcome-message {
+    text-align: center;
+    color: #6c757d;
+    padding: 32px 16px;
+
+    p {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+
+      &:first-child {
+        font-weight: 600;
+        color: #495057;
+      }
+    }
+  }
+
+  .message {
+    display: flex;
+    
+    &
