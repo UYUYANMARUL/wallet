@@ -1,7 +1,7 @@
 {
   "extends": "@abhijithvijayan/tsconfig",
   "compilerOptions": {
-    "target": "es2018",
+    "target": "es2020",
     "module": "esnext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "declaration": false,
@@ -20,6 +20,12 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
   },
-  "include": ["source/**/*", "webpack.config.js"],
+  "include": [
+    "source/**/*",
+    "webpack.config.js",
+    "MacpClient.tsx",
+    "MacpServer",
+    "McpClient",
+  ],
   "exclude": ["node_modules", "dist", "extension"],
 }

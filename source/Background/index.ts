@@ -1,10 +1,41 @@
 import { browser } from "webextension-polyfill-ts";
 import OpenAI from "openai";
 import { z } from "zod";
+import tokens from "./tokens.json";
 import {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources/chat/completions";
+import {
+  Contract,
+  formatUnits,
+  JsonRpcProvider,
+  parseUnits,
+  Wallet,
+} from "ethers";
+import routerAbi from "./router_abi.json";
+
+const ERC20_ABI = [
+  // Read-only functions
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+
+  // State-changing functions
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
+
+  // Events
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)",
+];
+
+const RPC_URL = "https://spicy-rpc.chiliz.com";
+const CONTRACT_ADDRESS = "0x94448122c3F4276CDFA8C190249da4C1c736eEab";
 
 // Simple validation schemas
 const SwapSchema = z.object({
@@ -89,7 +120,7 @@ class SwapSendMCPClient {
   private initializeData() {
     // User token balances
     this.tokens = [
-      { symbol: "ETH", name: "Ethereum", balance: 5.5 },
+      { symbol: "CHZ", name: "Chiliz", balance: 5.5 },
       { symbol: "USDC", name: "USD Coin", balance: 10000 },
       { symbol: "USDT", name: "Tether", balance: 5000 },
       { symbol: "WBTC", name: "Wrapped Bitcoin", balance: 0.15 },
@@ -329,12 +360,16 @@ class SwapSendMCPClient {
     }
   }
 
-  private handleSwap(args: any) {
+  private async handleSwap(args: any) {
     const { tokenIn, tokenOut, amountIn, slippage = 0.005 } = args;
+    const { privateKey } = await browser.storage.sync.get(["privateKey"]);
+    const provider = new JsonRpcProvider(RPC_URL);
+    const wallet = new Wallet(privateKey, provider);
+    const router = new Contract(CONTRACT_ADDRESS, routerAbi, wallet);
 
     // Validate inputs
-    const tokenInData = this.tokens.find((t) => t.symbol === tokenIn);
-    const tokenOutData = this.tokens.find((t) => t.symbol === tokenOut);
+    const tokenInData = tokens.find((t) => t.symbol === tokenIn);
+    const tokenOutData = tokens.find((t) => t.symbol === tokenOut);
 
     if (!tokenInData) {
       throw new Error(`Token ${tokenIn} not found`);
@@ -342,66 +377,170 @@ class SwapSendMCPClient {
     if (!tokenOutData) {
       throw new Error(`Token ${tokenOut} not found`);
     }
-    if (tokenInData.balance < amountIn) {
-      throw new Error(
-        `Insufficient ${tokenIn} balance. Available: ${tokenInData.balance}`,
-      );
-    }
 
-    // Find liquidity pool
-    const pool = this.pools.find(
-      (p) =>
-        (p.tokenA === tokenIn && p.tokenB === tokenOut) ||
-        (p.tokenA === tokenOut && p.tokenB === tokenIn),
-    );
+    // Get current balance from blockchain
+    let currentBalance;
+    const isEthIn = tokenIn === "ETH" || tokenIn === "WETH";
 
-    if (!pool) {
-      throw new Error(`No liquidity pool found for ${tokenIn}/${tokenOut}`);
-    }
-
-    // Determine swap direction
-    const isTokenAToB = pool.tokenA === tokenIn;
-    const reserveIn = isTokenAToB ? pool.reserveA : pool.reserveB;
-    const reserveOut = isTokenAToB ? pool.reserveB : pool.reserveA;
-
-    // AMM swap calculation: x * y = k
-    const fee = 0.003; // 0.3% fee
-    const amountInWithFee = amountIn * (1 - fee);
-    const amountOut =
-      (amountInWithFee * reserveOut) / (reserveIn + amountInWithFee);
-
-    // Apply slippage protection
-    const minimumAmountOut = amountOut * (1 - slippage);
-
-    // Update balances
-    tokenInData.balance -= amountIn;
-    tokenOutData.balance += amountOut;
-
-    // Update pool reserves
-    if (isTokenAToB) {
-      pool.reserveA += amountIn;
-      pool.reserveB -= amountOut;
+    if (isEthIn) {
+      // Get ETH balance
+      const ethBalance = await provider.getBalance(wallet.address);
+      currentBalance = parseFloat(formatUnits(ethBalance, 18));
     } else {
-      pool.reserveB += amountIn;
-      pool.reserveA -= amountOut;
+      // Get ERC20 token balance
+      // const tokenContract = new Contract(
+      //   tokenInData.address,
+      //   ERC20_ABI,
+      //   wallet,
+      // );
+      // const tokenBalance = await tokenContract.balanceOf(wallet.address);
+      // const decimals = await tokenContract.decimals();
+      // currentBalance = parseFloat(formatUnits(tokenBalance, decimals));
     }
+
+    // if (currentBalance < amountIn) {
+    //   throw new Error(
+    //     `Insufficient ${tokenIn} balance. Available: ${currentBalance}, Requested: ${amountIn}`,
+    //   );
+    // }
+
+    const inToken = tokens.find((token) => token.symbol == tokenIn);
+    const outToken = tokens.find((token) => token.symbol == tokenOut);
+    const inputTokenAddress = inToken?.address;
+    const outputTokenAddress = outToken?.address;
+
+    if (!inputTokenAddress) {
+      throw new Error(`Token ${tokenIn} not found`);
+    }
+    if (!outputTokenAddress) {
+      throw new Error(`Token ${tokenOut} not found`);
+    }
+
+    const to = wallet.address;
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes
+
+    // Check if we're dealing with ETH
+    const isEthOut = tokenOut === "ETH" || tokenOut === "WETH";
+
+    let tx;
+
+    if (isEthIn && !isEthOut) {
+      // ETH to Token swap
+      const parsedAmountIn = parseUnits(amountIn.toString(), 18); // ETH has 18 decimals
+
+      // Get output token decimals for amountOutMin calculation
+      const outTokenContract = new Contract(
+        outputTokenAddress,
+        ERC20_ABI,
+        wallet,
+      );
+      const outDecimals = await outTokenContract.decimals();
+
+      let amountOutMin;
+      try {
+        amountOutMin = parseUnits("0.001", outDecimals);
+      } catch (error) {
+        console.log("Decimal error, setting amountOutMin to 0");
+        amountOutMin = 0n;
+      }
+
+      const path = [inputTokenAddress, outputTokenAddress];
+      const isTokenInWrapped = false;
+      const receiveUnwrappedToken = false;
+
+      tx = await router.swapExactETHForTokens(
+        amountOutMin,
+        path,
+        isTokenInWrapped,
+        receiveUnwrappedToken,
+        to,
+        deadline,
+        { value: parsedAmountIn },
+      );
+    } else if (!isEthIn && isEthOut) {
+      // Token to ETH swap
+      const erc20 = new Contract(inputTokenAddress, ERC20_ABI, wallet);
+      const decimals = await erc20.decimals();
+      const parsedAmountIn = parseUnits(amountIn.toString(), decimals);
+
+      // Check and approve token spending if needed
+      const allowance = await erc20.allowance(wallet.address, CONTRACT_ADDRESS);
+      if (allowance < parsedAmountIn) {
+        console.log("Approving token spending...");
+        const approveTx = await erc20.approve(CONTRACT_ADDRESS, parsedAmountIn);
+        await approveTx.wait();
+      }
+
+      let amountOutMin;
+      try {
+        amountOutMin = parseUnits("0.001", 18); // ETH has 18 decimals
+      } catch (error) {
+        console.log("Decimal error, setting amountOutMin to 0");
+        amountOutMin = 0n;
+      }
+
+      const path = [inputTokenAddress, outputTokenAddress];
+      const isTokenInWrapped = false;
+      const receiveUnwrappedToken = true; // We want to receive ETH, not WETH
+
+      tx = await router.swapExactTokensForETH(
+        parsedAmountIn,
+        amountOutMin,
+        path,
+        isTokenInWrapped,
+        receiveUnwrappedToken,
+        to,
+        deadline,
+      );
+    } else if (!isEthIn && !isEthOut) {
+      // Token to Token swap (your original logic)
+      const erc20 = new Contract(inputTokenAddress, ERC20_ABI, wallet);
+      const decimals = await erc20.decimals();
+      const parsedAmountIn = parseUnits(amountIn.toString(), decimals);
+
+      // Check and approve token spending if needed
+      const allowance = await erc20.allowance(wallet.address, CONTRACT_ADDRESS);
+      if (allowance < parsedAmountIn) {
+        console.log("Approving token spending...");
+        const approveTx = await erc20.approve(CONTRACT_ADDRESS, parsedAmountIn);
+        await approveTx.wait();
+      }
+
+      let amountOutMin;
+      try {
+        amountOutMin = parseUnits("0.001", decimals);
+      } catch (error) {
+        console.log("Decimal error, setting amountOutMin to 0");
+        amountOutMin = 0n;
+      }
+
+      const path = [inputTokenAddress, outputTokenAddress];
+      const isTokenInWrapped = false;
+      const receiveUnwrappedToken = false;
+
+      tx = await router.swapExactTokensForTokens(
+        parsedAmountIn,
+        amountOutMin,
+        path,
+        isTokenInWrapped,
+        receiveUnwrappedToken,
+        to,
+        deadline,
+      );
+    } else {
+      // ETH to ETH (shouldn't happen, but just in case)
+      throw new Error("Cannot swap ETH to ETH");
+    }
+
+    console.log("Swap transaction sent! Tx hash:", tx.hash);
+    const res = await tx.wait();
 
     const swapResult = {
       success: true,
       tokenIn,
       tokenOut,
       amountIn,
-      amountOut: Math.round(amountOut * 1000000) / 1000000,
-      minimumAmountOut: Math.round(minimumAmountOut * 1000000) / 1000000,
-      slippage,
-      fee: amountIn * fee,
-      priceImpact: ((amountIn / reserveIn) * 100).toFixed(4) + "%",
-      newBalances: {
-        [tokenIn]: tokenInData.balance,
-        [tokenOut]: tokenOutData.balance,
-      },
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
-      timestamp: new Date().toISOString(),
+      tx: res,
     };
 
     return {
@@ -415,38 +554,79 @@ class SwapSendMCPClient {
       },
     };
   }
-
-  private handleSend(args: any) {
+  private async handleSend(args: any) {
     const { token, amount, recipient } = args;
+    const { privateKey } = await browser.storage.sync.get(["privateKey"]);
+    const provider = new JsonRpcProvider(RPC_URL);
+    const wallet = new Wallet(privateKey, provider);
 
     // Validate inputs
-    const tokenData = this.tokens.find((t) => t.symbol === token);
+    const tokenData = tokens.find((t) => t.symbol === token);
     if (!tokenData) {
       throw new Error(`Token ${token} not found`);
     }
-
-    if (tokenData.balance < amount) {
-      throw new Error(
-        `Insufficient ${token} balance. Available: ${tokenData.balance}`,
-      );
-    }
-
+    // if (tokenData.balance < amount) {
+    //   throw new Error(
+    //     `Insufficient ${token} balance. Available: ${tokenData.balance}`,
+    //   );
+    // }
     if (!recipient || recipient.length < 10) {
       throw new Error("Invalid recipient address");
     }
 
-    // Execute send
-    tokenData.balance -= amount;
+    console.log(token);
+
+    // Find token in the tokens array
+    const tokenInfo = tokens.find((t) => t.symbol == token);
+
+    console.log(tokenInfo);
+    if (!tokenInfo) {
+      throw new Error(`Token ${token} not found in tokens list`);
+    }
+
+    let tx;
+    let decimals;
+
+    // Check if it's a native token (ETH, BNB, etc.)
+    const isNativeToken =
+      tokenInfo.address === "0x0000000000000000000000000000000000000000" ||
+      tokenInfo.address.toLowerCase() ===
+        "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+
+    if (isNativeToken) {
+      // Handle native token transfer
+      decimals = 18; // Native tokens typically have 18 decimals
+      const parsedAmount = parseUnits(amount.toString(), decimals);
+
+      tx = await wallet.sendTransaction({
+        to: recipient,
+        value: parsedAmount,
+      });
+    } else {
+      // Handle ERC20 token transfer
+      const erc20 = new Contract(tokenInfo.address, ERC20_ABI, wallet);
+      decimals = await erc20.decimals();
+      const parsedAmount = parseUnits(amount.toString(), decimals);
+
+      tx = await erc20.transfer(recipient, parsedAmount);
+    }
+
+    console.log("Send transaction submitted! Tx hash:", tx.hash);
+
+    // Wait for transaction confirmation
+    const res = await tx.wait();
 
     const sendResult = {
       success: true,
       token,
       amount,
       recipient,
-      remainingBalance: tokenData.balance,
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      tx: res,
+      txHash: res.hash,
       timestamp: new Date().toISOString(),
-      gasUsed: Math.floor(Math.random() * 50000) + 21000, // Random gas between 21k-71k
+      gasUsed: res.gasUsed?.toString() || "0",
+      isNativeToken,
+      scanner: "https://testnet.chiliscan.com/",
     };
 
     return {
