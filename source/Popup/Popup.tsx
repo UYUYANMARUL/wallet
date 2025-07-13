@@ -389,33 +389,45 @@ const Popup: React.FC = () => {
 
   if (showSettings) {
     return (
-      <div className="settings-container">
-        <div className="settings-header">
-          <h3>Settings</h3>
-          <button className="close-btn" onClick={() => setShowSettings(false)}>
+      <div className="w-96 bg-gray-900 text-white min-h-screen">
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <h3 className="text-lg font-semibold">Settings</h3>
+          <button
+            className="text-gray-400 hover:text-white text-xl leading-none"
+            onClick={() => setShowSettings(false)}
+          >
             ×
           </button>
         </div>
 
-        <div className="settings-content">
-          <div className="form-group">
-            <label htmlFor="apiKey">OpenAI API Key:</label>
+        <div className="p-4 space-y-4">
+          <div className="space-y-2">
+            <label
+              htmlFor="apiKey"
+              className="block text-sm font-medium text-gray-300"
+            >
+              OpenAI API Key:
+            </label>
             <input
               type="password"
               id="apiKey"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your OpenAI API key"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
-          <div className="button-group">
-            <button onClick={saveApiKey} className="save-btn">
+          <div className="flex space-x-3 pt-4">
+            <button
+              onClick={saveApiKey}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            >
               Save
             </button>
             <button
               onClick={() => setShowSettings(false)}
-              className="cancel-btn"
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -426,17 +438,25 @@ const Popup: React.FC = () => {
   }
 
   return (
-    <div className="popup-container">
-      <div className="header">
-        <h2>Wallet Assistant</h2>
-        <div className="header-controls">
+    <div className="w-96 bg-gray-900 text-white min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <h2 className="text-lg font-bold">Wallet Assistant</h2>
+        <div className="flex items-center space-x-3">
           <div
-            className={`connection-status ${isConnected ? "connected" : "disconnected"}`}
+            className={`flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
+              isConnected
+                ? "bg-green-900 text-green-300"
+                : "bg-red-900 text-red-300"
+            }`}
           >
-            {isConnected ? "🟢" : "🔴"} MCP
+            <span
+              className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+            ></span>
+            <span>MCP</span>
           </div>
           <button
-            className="settings-btn"
+            className="text-gray-400 hover:text-white text-lg transition-colors"
             onClick={() => setShowSettings(true)}
             title="Settings"
           >
@@ -447,47 +467,63 @@ const Popup: React.FC = () => {
 
       {/* Wallet Profile Section */}
       {walletInfo && (
-        <div className="wallet-profile">
-          <div className="profile-header">
-            <div className="profile-icon">👤</div>
-            <div className="profile-info">
-              <div className="address-section">
+        <div className="p-4 border-b border-gray-700">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-2xl">
+              👤
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
                 <span
-                  className="address"
+                  className="text-sm text-gray-300 cursor-pointer hover:text-white transition-colors"
                   onClick={() => copyToClipboard(walletInfo.address)}
                 >
                   {formatAddress(walletInfo.address)}
                 </span>
                 <button
-                  className="copy-btn"
+                  className="text-xs text-gray-400 hover:text-white transition-colors"
                   onClick={() => copyToClipboard(walletInfo.address)}
                 >
                   📋
                 </button>
               </div>
-              <div className="balance">
-                <span className="balance-amount">{walletInfo.balance} ETH</span>
-                <span className="balance-usd">≈ $1,234.56</span>
+              <div className="space-y-1">
+                <div className="text-xl font-bold">
+                  {walletInfo.balance} ETH
+                </div>
+                <div className="text-sm text-gray-400">≈ $1,234.56</div>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="action-buttons">
+          <div className="grid grid-cols-3 gap-2">
             <button
-              className={`action-btn ${activeTab === "send" ? "active" : ""}`}
+              className={`py-2 px-3 rounded-lg font-medium transition-colors ${
+                activeTab === "send"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
               onClick={() => setActiveTab("send")}
             >
               Send
             </button>
             <button
-              className={`action-btn ${activeTab === "swap" ? "active" : ""}`}
+              className={`py-2 px-3 rounded-lg font-medium transition-colors ${
+                activeTab === "swap"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
               onClick={() => setActiveTab("swap")}
             >
               Swap
             </button>
             <button
-              className={`action-btn ${activeTab === "chat" ? "active" : ""}`}
+              className={`py-2 px-3 rounded-lg font-medium transition-colors ${
+                activeTab === "chat"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
               onClick={() => setActiveTab("chat")}
             >
               Chat
@@ -497,304 +533,424 @@ const Popup: React.FC = () => {
       )}
 
       {/* Tab Content */}
-      {activeTab === "send" && (
-        <div className="tab-content">
-          <div className="tab-header">
-            <button className="back-btn" onClick={() => setActiveTab("wallet")}>
-              ← Back
-            </button>
-            <h3>Send ETH</h3>
-          </div>
-          <div className="send-section">
-            <div className="form-group">
-              <label>To Address:</label>
-              <input
-                type="text"
-                value={sendToAddress}
-                onChange={(e) => setSendToAddress(e.target.value)}
-                placeholder="0x..."
-              />
-            </div>
-            <div className="form-group">
-              <label>Amount (ETH):</label>
-              <input
-                type="number"
-                value={sendAmount}
-                onChange={(e) => setSendAmount(e.target.value)}
-                placeholder="0.0"
-                step="0.001"
-              />
-            </div>
-            <button
-              className="send-transaction-btn"
-              onClick={handleSendTransaction}
-              disabled={!sendToAddress || !sendAmount || isLoading}
-            >
-              {isLoading ? "Sending..." : "Send Transaction"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "swap" && (
-        <div className="tab-content">
-          <div className="tab-header">
-            <button className="back-btn" onClick={() => setActiveTab("wallet")}>
-              ← Back
-            </button>
-            <h3>Swap Tokens</h3>
-          </div>
-          <div className="swap-section">
-            <div className="swap-form">
-              <div className="form-group">
-                <label>From:</label>
-                <select>
-                  <option>ETH</option>
-                  <option>USDC</option>
-                  <option>LINK</option>
-                </select>
-              </div>
-              <div className="swap-direction">⇅</div>
-              <div className="form-group">
-                <label>To:</label>
-                <select>
-                  <option>USDC</option>
-                  <option>ETH</option>
-                  <option>LINK</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Amount:</label>
-                <input type="number" placeholder="0.0" step="0.001" />
-              </div>
-              <button className="swap-btn">Swap Tokens</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "chat" && (
-        <div className="tab-content">
-          <div className="tab-header">
-            <button className="back-btn" onClick={() => setActiveTab("wallet")}>
-              ← Back
-            </button>
-            <h3>Chat Assistant</h3>
-            <button
-              className="tools-btn"
-              onClick={() => setShowToolsPanel(!showToolsPanel)}
-              title="Show Tools & Resources"
-            >
-              🔧
-            </button>
-          </div>
-          {showToolsPanel && (
-            <div className="tools-panel">
-              <div className="panel-section">
-                <h4>Available Tools</h4>
-                {tools.length === 0 ? (
-                  <p className="no-items">No tools available</p>
-                ) : (
-                  <div className="tools-grid">
-                    {tools.map((tool) => (
-                      <div key={tool.name} className="tool-card">
-                        <div className="tool-name">{tool.name}</div>
-                        <div className="tool-description">
-                          {tool.description}
-                        </div>
-                        <button
-                          onClick={() => callTool(tool.name)}
-                          className="tool-call-btn"
-                          disabled={isLoading}
-                        >
-                          Call
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="panel-section">
-                <h4>Available Resources</h4>
-                {resources.length === 0 ? (
-                  <p className="no-items">No resources available</p>
-                ) : (
-                  <div className="resources-grid">
-                    {resources.map((resource) => (
-                      <div key={resource.uri} className="resource-card">
-                        <div className="resource-name">{resource.name}</div>
-                        <div className="resource-uri">{resource.uri}</div>
-                        {resource.description && (
-                          <div className="resource-description">
-                            {resource.description}
-                          </div>
-                        )}
-                        <button
-                          onClick={() => readResource(resource.uri)}
-                          className="resource-read-btn"
-                          disabled={isLoading}
-                        >
-                          Read
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {!isConnected && (
-                <div className="connection-controls">
-                  <button onClick={connectToMCP} className="connect-btn">
-                    Connect to MCP Server
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="messages-container">
-            {messages.length === 0 ? (
-              <div className="welcome-message">
-                <p>Welcome to your wallet assistant!</p>
-                <p>
-                  Ask me about your transactions, balances, or crypto questions.
-                </p>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <div key={message.id} className={`message ${message.sender}`}>
-                  <div className="message-content">
-                    <div className="message-text">{message.text}</div>
-                    <div className="message-time">
-                      {formatTimestamp(message.timestamp)}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-
-            {isLoading && (
-              <div className="message assistant loading">
-                <div className="message-content">
-                  <div className="message-text">
-                    <div className="typing-indicator">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="input-container">
-            <div className="input-wrapper">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about your wallet..."
-                disabled={isLoading}
-                rows={1}
-              />
+      <div className="flex-1 flex flex-col">
+        {activeTab === "send" && (
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
               <button
-                onClick={sendMessage}
-                disabled={isLoading || !inputMessage.trim()}
-                className="send-btn"
+                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => setActiveTab("wallet")}
               >
-                {isLoading ? "⏳" : "📤"}
+                ← Back
+              </button>
+              <h3 className="font-semibold">Send ETH</h3>
+              <div></div>
+            </div>
+            <div className="flex-1 p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  To Address:
+                </label>
+                <input
+                  type="text"
+                  value={sendToAddress}
+                  onChange={(e) => setSendToAddress(e.target.value)}
+                  placeholder="0x..."
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Amount (ETH):
+                </label>
+                <input
+                  type="number"
+                  value={sendAmount}
+                  onChange={(e) => setSendAmount(e.target.value)}
+                  placeholder="0.0"
+                  step="0.001"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <button
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors"
+                onClick={handleSendTransaction}
+                disabled={!sendToAddress || !sendAmount || isLoading}
+              >
+                {isLoading ? "Sending..." : "Send Transaction"}
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Bottom Section Navigation - Only show on wallet tab */}
-      {activeTab === "wallet" && (
-        <div className="bottom-section">
-          <div className="section-tabs">
-            <button
-              className={`tab ${walletSection === "tokens" ? "active" : ""}`}
-              onClick={() => setWalletSection("tokens")}
-            >
-              Tokens
-            </button>
-            <button
-              className={`tab ${walletSection === "nfts" ? "active" : ""}`}
-              onClick={() => setWalletSection("nfts")}
-            >
-              NFTs
-            </button>
-            <button
-              className={`tab ${walletSection === "history" ? "active" : ""}`}
-              onClick={() => setWalletSection("history")}
-            >
-              History
-            </button>
+        {activeTab === "swap" && (
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <button
+                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => setActiveTab("wallet")}
+              >
+                ← Back
+              </button>
+              <h3 className="font-semibold">Swap Tokens</h3>
+              <div></div>
+            </div>
+            <div className="flex-1 p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  From:
+                </label>
+                <select className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option>ETH</option>
+                  <option>USDC</option>
+                  <option>LINK</option>
+                </select>
+              </div>
+              <div className="flex justify-center py-2">
+                <div className="text-2xl text-gray-400">⇅</div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  To:
+                </label>
+                <select className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option>USDC</option>
+                  <option>ETH</option>
+                  <option>LINK</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Amount:
+                </label>
+                <input
+                  type="number"
+                  placeholder="0.0"
+                  step="0.001"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors">
+                Swap Tokens
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className="section-content">
-            {walletSection === "tokens" && (
-              <div className="tokens-list">
-                {tokens.map((token) => (
-                  <div key={token.symbol} className="token-item">
-                    <div className="token-icon">🪙</div>
-                    <div className="token-info">
-                      <div className="token-symbol">{token.symbol}</div>
-                      <div className="token-name">{token.name}</div>
+        {activeTab === "chat" && (
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <button
+                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => setActiveTab("wallet")}
+              >
+                ← Back
+              </button>
+              <h3 className="font-semibold">Chat Assistant</h3>
+              <button
+                className="text-gray-400 hover:text-white transition-colors"
+                onClick={() => setShowToolsPanel(!showToolsPanel)}
+                title="Show Tools & Resources"
+              >
+                🔧
+              </button>
+            </div>
+
+            {showToolsPanel && (
+              <div className="border-b border-gray-700 bg-gray-800 p-4 space-y-4 max-h-64 overflow-y-auto">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-300">Available Tools</h4>
+                  {tools.length === 0 ? (
+                    <p className="text-sm text-gray-500">No tools available</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {tools.map((tool) => (
+                        <div
+                          key={tool.name}
+                          className="bg-gray-700 rounded-lg p-3"
+                        >
+                          <div className="font-medium text-sm">{tool.name}</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {tool.description}
+                          </div>
+                          <button
+                            onClick={() => callTool(tool.name)}
+                            className="mt-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors"
+                            disabled={isLoading}
+                          >
+                            Call
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <div className="token-balance">{token.balance}</div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-300">
+                    Available Resources
+                  </h4>
+                  {resources.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No resources available
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {resources.map((resource) => (
+                        <div
+                          key={resource.uri}
+                          className="bg-gray-700 rounded-lg p-3"
+                        >
+                          <div className="font-medium text-sm">
+                            {resource.name}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {resource.uri}
+                          </div>
+                          {resource.description && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {resource.description}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => readResource(resource.uri)}
+                            className="mt-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors"
+                            disabled={isLoading}
+                          >
+                            Read
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {!isConnected && (
+                  <div className="pt-2">
+                    <button
+                      onClick={connectToMCP}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded-lg transition-colors"
+                    >
+                      Connect to MCP Server
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
             )}
 
-            {walletSection === "nfts" && (
-              <div className="nfts-list">
-                <p className="no-items">No NFTs found</p>
-              </div>
-            )}
-
-            {walletSection === "history" && (
-              <div className="history-list">
-                {transactions.map((tx) => (
-                  <div key={tx.hash} className="transaction-item">
-                    <div className="tx-icon">
-                      {tx.from === walletInfo?.address ? "📤" : "📥"}
-                    </div>
-                    <div className="tx-info">
-                      <div className="tx-address">
-                        {tx.from === walletInfo?.address ? "To" : "From"}:{" "}
-                        {formatAddress(
-                          tx.from === walletInfo?.address ? tx.to : tx.from,
-                        )}
-                      </div>
-                      <div className="tx-time">
-                        {formatTimestamp(tx.timestamp)}
-                      </div>
-                    </div>
-                    <div className="tx-amount">
-                      <span
-                        className={
-                          tx.from === walletInfo?.address ? "sent" : "received"
-                        }
+            <div className="flex-1 overflow-y-auto p-4">
+              {messages.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <p className="mb-2">Welcome to your wallet assistant!</p>
+                  <p className="text-sm">
+                    Ask me about your transactions, balances, or crypto
+                    questions.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-xs px-4 py-2 rounded-lg ${
+                          message.sender === "user"
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-700 text-gray-100"
+                        }`}
                       >
-                        {tx.from === walletInfo?.address ? "-" : "+"}
-                        {tx.value} ETH
-                      </span>
-                      <div className={`tx-status ${tx.status}`}>
-                        {tx.status}
+                        <div className="text-sm">{message.text}</div>
+                        <div className="text-xs opacity-70 mt-1">
+                          {formatTimestamp(message.timestamp)}
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
+
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-700 text-gray-100 max-w-xs px-4 py-2 rounded-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
                   </div>
-                ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-700">
+              <div className="flex space-x-2">
+                <textarea
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask about your wallet..."
+                  disabled={isLoading}
+                  rows={1}
+                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={isLoading || !inputMessage.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  {isLoading ? "⏳" : "📤"}
+                </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Bottom Section Navigation - Only show on wallet tab */}
+        {activeTab === "wallet" && (
+          <div className="border-t border-gray-700">
+            <div className="flex bg-gray-800">
+              <button
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  walletSection === "tokens"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-700"
+                }`}
+                onClick={() => setWalletSection("tokens")}
+              >
+                Tokens
+              </button>
+              <button
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  walletSection === "nfts"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-700"
+                }`}
+                onClick={() => setWalletSection("nfts")}
+              >
+                NFTs
+              </button>
+              <button
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  walletSection === "history"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-gray-700"
+                }`}
+                onClick={() => setWalletSection("history")}
+              >
+                History
+              </button>
+            </div>
+
+            <div className="p-4 max-h-64 overflow-y-auto">
+              {walletSection === "tokens" && (
+                <div className="space-y-3">
+                  {tokens.map((token) => (
+                    <div
+                      key={token.symbol}
+                      className="flex items-center p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-lg mr-3">
+                        🪙
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">{token.symbol}</div>
+                        <div className="text-sm text-gray-400">
+                          {token.name}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{token.balance}</div>
+                        <div className="text-sm text-gray-400">
+                          {token.symbol}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {walletSection === "nfts" && (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🖼️</div>
+                  <p className="text-gray-400">No NFTs found</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Your NFT collection will appear here
+                  </p>
+                </div>
+              )}
+
+              {walletSection === "history" && (
+                <div className="space-y-3">
+                  {transactions.map((tx) => (
+                    <div
+                      key={tx.hash}
+                      className="flex items-center p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-lg mr-3 ${
+                          tx.from === walletInfo?.address
+                            ? "bg-red-900 text-red-300"
+                            : "bg-green-900 text-green-300"
+                        }`}
+                      >
+                        {tx.from === walletInfo?.address ? "📤" : "📥"}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm">
+                          <span className="text-gray-400">
+                            {tx.from === walletInfo?.address
+                              ? "To: "
+                              : "From: "}
+                          </span>
+                          <span className="font-mono">
+                            {formatAddress(
+                              tx.from === walletInfo?.address ? tx.to : tx.from,
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {formatTimestamp(tx.timestamp)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div
+                          className={`font-medium ${
+                            tx.from === walletInfo?.address
+                              ? "text-red-400"
+                              : "text-green-400"
+                          }`}
+                        >
+                          {tx.from === walletInfo?.address ? "-" : "+"}
+                          {tx.value} ETH
+                        </div>
+                        <div
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            tx.status === "confirmed"
+                              ? "bg-green-900 text-green-300"
+                              : tx.status === "pending"
+                                ? "bg-yellow-900 text-yellow-300"
+                                : "bg-red-900 text-red-300"
+                          }`}
+                        >
+                          {tx.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

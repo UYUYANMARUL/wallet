@@ -60,6 +60,7 @@
     {
       "matches": ["http://*/*", "https://*/*"],
       "js": ["js/contentScript.bundle.js"]
+      "css": ["./Popup/styles.css"]
     }
   ]
 }
